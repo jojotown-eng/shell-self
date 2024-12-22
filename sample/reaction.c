@@ -61,66 +61,72 @@ int main(int argc, char**argv)
 }
 
 void redirect(char **argv){
-	for(int i=0;argv[i]!=NULL;i++){
-		if(strcmp(argv[i],">")==0){
-			int fd = open(argv[i+1], O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-			close(1);
-			dup(fd);
-			close(fd);
-			argv[i]=NULL;
-			break;
+  int command_locate=1;
+	for(int i=0; argv[i]!=NULL; i++){
+		if(strcmp(argv[i], ">") == 0){
+			if(fork() == 0){
+				int fd = open(argv[i+1], O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+				dup2(fd, 1);
+				close(fd);
+				argv[i] = NULL;
+        for(int j=0; argv[i-j]!=argv[0]; j++){//先頭と同じコマンドになるまで、繰り返す
+          if(*argv[i-j]=='"'){
+            command_locate++;
+          }
+        }
+				if (execvp(argv[i-command_locate], argv+i-command_locate) < 0){
+					perror("execvp");
+					exit(-1);
+				}
+			}
 		}
-	}
-	if (execvp(argv[0], argv) < 0){
-		perror("execvp");
-		exit(-1);
 	}
 }
 
 void serise_pipe(char **argv){
 	int *pipe_locate;
-	pipe_locate=(int*)malloc(sizeof(int));
-	*pipe_locate=-1;
-	int pipe_count=0;
-	pipe_locate[0]=-1;
-	for(int i=0;argv[i]!=NULL;i++){
-		if(strcmp(argv[i],"|")==0){
+	pipe_locate = (int*)malloc(sizeof(int));
+	*pipe_locate = -1;
+	int pipe_count = 0;
+	pipe_locate[0] = -1;
+	for(int i=0; argv[i]!=NULL; i++){
+		if(strcmp(argv[i], "|") == 0){
 			pipe_count++;
-			pipe_locate=(int*)realloc(pipe_locate,sizeof(int)*(pipe_count+1));
-			pipe_locate[pipe_count]=i;
-			argv[i]=NULL;
+			pipe_locate = (int*)realloc(pipe_locate, sizeof(int)*(pipe_count+1));
+			pipe_locate[pipe_count] = i;
+			argv[i] = NULL;
 		}
 	}
 	int pipe_connect[pipe_count+1][2];
-	for(int i=0;i<pipe_count+1;i++){
-		if(i!=pipe_count){
+	for(int i=0; i<pipe_count+1; i++){
+		if(i != pipe_count){
 			pipe(pipe_connect[i]);
 		}
-		if(fork()==0){//子プロセス処理 パイプをつなげる
-			if(i==0){
-				dup2(pipe_connect[i][1],1);
+		if(fork() == 0){//子プロセス処理 パイプをつなげる
+			if(i == 0){
+				dup2(pipe_connect[i][1], 1);
 				close(pipe_connect[i][0]);
 				close(pipe_connect[i][1]);
-			}else if(i==pipe_count){
-				dup2(pipe_connect[i-1][0],0);
+			}else if(i == pipe_count){
+				dup2(pipe_connect[i-1][0], 0);
 				close(pipe_connect[i-1][0]);
 				close(pipe_connect[i-1][1]);
 			}else{
-				dup2(pipe_connect[i-1][0],0);
-				dup2(pipe_connect[i][1],1);
+				dup2(pipe_connect[i-1][0], 0);
+				dup2(pipe_connect[i][1], 1);
 				close(pipe_connect[i][0]);
 				close(pipe_connect[i][1]);
 				close(pipe_connect[i-1][0]);
 				close(pipe_connect[i-1][1]);
 			}
-			if(execvp(argv[pipe_locate[i] + 1], argv + pipe_locate[i] + 1)<0){
+			if(execvp(argv[pipe_locate[i] + 1], argv + pipe_locate[i] + 1) < 0){
 				perror("execvp");
 				exit(EXIT_FAILURE);
 			}			
 		}else{//親プロセス 何もしないで待つ
 		}
 	}
-	for(int i=0;i<pipe_count;i++){//生成した子プロセス分waitして終了を待つ
+	for(int i=0; i<pipe_count; i++){//生成した子プロセス分waitして終了を待つ
 		wait(NULL);
 	}
 	free(pipe_locate);
@@ -129,35 +135,27 @@ void serise_pipe(char **argv){
 void runcmd(char *buf)
 {
 	char *argv[ARGVSIZE];
-	int judg=-1;
+	int judg[2]={0,0};
 	
 	memset(argv, 0, ARGVSIZE);//値をすべて0にする
 	if (parsecmd(argv, buf, &buf[strlen(buf)]) > 0)//コマンド実行
-	for(int i=0;argv[i]!=NULL;i++){
-		if(strcmp(argv[i],">")==0){
-			judg=1;
+	for(int i=0; argv[i]!=NULL; i++){
+		if(strcmp(argv[i], ">") == 0){
+			judg[0] = 1;
 			break;
-		}else if(strcmp(argv[i],"|")==0){
-			judg=2;
+		}else if(strcmp(argv[i], "|") == 0){
+			judg[1] = 1;
 			break;
 		}
 	}
-	switch (judg)
-	{
-	case 1:
-		redirect(argv);
-		break;
-	
-	case 2:
-		serise_pipe(argv);
-		break;
-	
-	default:
-		if (execvp(argv[0], argv) < 0){
-			perror("execvp");
-			exit(EXIT_FAILURE);
-		}
-	}
+  if(judg[0]==1)redirect(argv);
+  if(judg[1]==1)serise_pipe(argv);
+  if(judg[0]==0 && judg[1]==0){
+    if (execvp(argv[0], argv) < 0){
+      perror("execvp");
+      exit(EXIT_FAILURE);
+    }
+  }
 }
 
 int parsecmd(char **argv, char *buf, char *ebuf)
