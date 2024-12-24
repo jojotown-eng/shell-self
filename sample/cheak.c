@@ -10,30 +10,30 @@
 #include <sys/wait.h>
 
 
-int is_FileOrDir(char *path);
-
 int main(int argc,char **argv){
-  struct stat path_statu;
-  if(argc!=2){
-    exit(EXIT_FAILURE);
-  }
-    printf("%d\n",is_FileOrDir(argv[1]));
 
-
+  char command[][20]={"echo","hello",">","output.txt"};
+  
+  
 
   return 0;
 }
 
-int is_FileOrDir(char *path){
-  struct stat path_statu;
-  if(stat(path,&path_statu)==0){
-    if(S_ISDIR(path_statu.st_mode)){
-      return 1;
-    }else if(S_ISREG(path_statu.st_mode)){
-      return 2;
-    }else{
-      return 3;
-    }
-  }
-  return 0;
+void redirect(char **argv){
+	for(int i=0; argv[i]!=NULL; i++){
+		if(strcmp(argv[i], ">") == 0){
+			if(fork() == 0){
+        int j=0;
+				int fd = open(argv[i+1], O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+				dup2(fd, 1);
+				close(fd);
+				argv[i] = NULL;
+        for(j=0; argv[i-j]!=NULL && (i-j)==0; j++)//リダイレクトの手前に必ずコマンドがある。
+				if (execvp(argv[i-j], argv+i-j) < 0){
+					perror("execvp");
+					exit(-1);
+				}
+			}
+		}
+	}
 }

@@ -71,20 +71,16 @@ int main(int argc, char**argv)
 }
 
 void redirect(char **argv){
-  int command_locate=1;
 	for(int i=0; argv[i]!=NULL; i++){
 		if(strcmp(argv[i], ">") == 0){
 			if(fork() == 0){
+        int j=0;
 				int fd = open(argv[i+1], O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 				dup2(fd, 1);
 				close(fd);
 				argv[i] = NULL;
-        for(int j=0; argv[i-j]!=NULL; j++){//リダイレクトの手前に必ずコマンドがある。
-          if(*argv[i-j]=='"'){
-            command_locate++;
-          }
-        }
-				if (execvp(argv[i-command_locate], argv+i-command_locate) < 0){
+        for(j=0; argv[i-j-1]!=NULL && (i-j-1)==0; j++)//リダイレクトの手前に必ずコマンドがある。
+				if (execvp(argv[i-j-1], argv+i-j-1) < 0){
 					perror("execvp");
 					exit(-1);
 				}
