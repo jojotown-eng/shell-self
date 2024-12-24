@@ -48,6 +48,16 @@ int parsecmd(char **argv, char *buf, char *ebuf);
  */
 int getcmd(char *buf, int len);
 
+/**
+ * @note fileとディレクトリの判定を行う関数
+ * @param 1:ディレクトリ
+ * @param 2:ファイル
+ * @param 3:その他→特別なファイル等々
+ * @param 0:エラー、fileが存在しないとき
+ */
+
+int is_FileOrDir(char *path);
+
 int main(int argc, char**argv)
 {
 	static char buf[BUFSIZE];
@@ -69,7 +79,7 @@ void redirect(char **argv){
 				dup2(fd, 1);
 				close(fd);
 				argv[i] = NULL;
-        for(int j=0; argv[i-j]!=argv[0]; j++){//先頭と同じコマンドになるまで、繰り返す
+        for(int j=0; argv[i-j]!=NULL; j++){//リダイレクトの手前に必ずコマンドがある。
           if(*argv[i-j]=='"'){
             command_locate++;
           }
@@ -188,6 +198,20 @@ int getcmd(char *buf, int len)
 	if (buf[0] == 0)
 		return -1;
 	return 0;
+}
+
+int is_FileOrDir(char *path){
+  struct stat path_statu;
+  if(stat(path,&path_statu)==0){
+    if(S_ISDIR(path_statu.st_mode)){
+      return 1;
+    }else if(S_ISREG(path_statu.st_mode)){
+      return 2;
+    }else{
+      return 3;
+    }
+  }
+  return 0;
 }
 
 
