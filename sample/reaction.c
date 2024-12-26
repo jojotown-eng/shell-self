@@ -70,6 +70,8 @@ int main(int argc, char**argv)
 	exit(0);
 }
 
+//echoはhelloが指定されているはぁ？
+
 void redirect(char **argv){
 	for(int i=0; argv[i]!=NULL; i++){
 		if(strcmp(argv[i], ">") == 0){
@@ -79,8 +81,10 @@ void redirect(char **argv){
 				dup2(fd, 1);
 				close(fd);
 				argv[i] = NULL;
-        for(j=0; argv[i-j-1]!=NULL && (i-j-1)==0; j++)//リダイレクトの手前に必ずコマンドがある。
-				if (execvp(argv[i-j-1], argv+i-j-1) < 0){
+        for(j=i-1; argv[j]!=NULL; j--){
+					if(j>=0)break;
+				}//リダイレクトの手前に必ずコマンドがある。
+				if (execvp(argv[j], argv+j) < 0){
 					perror("execvp");
 					exit(-1);
 				}
