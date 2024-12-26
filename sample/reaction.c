@@ -82,7 +82,7 @@ void redirect(char **argv){
 				close(fd);
 				argv[i] = NULL;
         for(j=i-1; argv[j]!=NULL; j--){
-					if(j>=0)break;
+					if(j<=0)break;
 				}//リダイレクトの手前に必ずコマンドがある。
 				if (execvp(argv[j], argv+j) < 0){
 					perror("execvp");
