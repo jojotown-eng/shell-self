@@ -58,6 +58,8 @@ int getcmd(char *buf, int len);
 
 int is_FileOrDir(char *path);
 
+
+
 int main(int argc, char**argv)
 {
 	static char buf[BUFSIZE];
