@@ -1,8 +1,0 @@
-new_file.txt
-output.txt
-sample
-shell
-shell.c
-simple_shell
-simple_shell.c
-supplements.pdf

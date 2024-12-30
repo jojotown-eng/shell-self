@@ -88,6 +88,8 @@ void redirect(char **argv){
 					perror("execvp");
 					exit(-1);
 				}
+			}else{
+				wait(NULL);
 			}
 		}
 	}

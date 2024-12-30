@@ -11,7 +11,7 @@
 
 int main(int argc,char **argv){
 
-  char *command[]={"ls",">","output.txt",NULL};
+  char *command[]={"ls","|","head",">","output.txt",NULL};
 	int redirect_locate=-1;
 	int *pipe_locate=NULL;
 	pipe_locate=(int*)malloc(sizeof(int));
@@ -44,26 +44,25 @@ int main(int argc,char **argv){
 					int fd=open(command[i+1], O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 					dup2(fd, 1);
 					close(fd);
+				}else{//パイプの処理
+					if(i==pipe_locate[0]){
+						dup2(pipe_connection[pipe_sub][1], 1);
+						close(pipe_connection[pipe_sub][0]);
+						close(pipe_connection[pipe_sub][1]);
+					}else if(i==pipe_locate[pipe_count-1]){
+						dup2(pipe_connection[pipe_sub-1][0], 0);
+						close(pipe_connection[pipe_sub-1][0]);
+						close(pipe_connection[pipe_sub-1][1]);
+					}else{
+						dup2(pipe_connection[pipe_sub-1][0], 0);
+						dup2(pipe_connection[pipe_sub][1], 1);
+						close(pipe_connection[pipe_sub][0]);
+						close(pipe_connection[pipe_sub][1]);
+						close(pipe_connection[pipe_sub-1][0]);
+						close(pipe_connection[pipe_sub-1][1]);
+					}
+					pipe_sub++;
 				}
-				// }else{//パイプの処理
-				// 	if(i==pipe_locate[0]){
-				// 		dup2(pipe_connection[pipe_sub][1], 1);
-				// 		close(pipe_connection[pipe_sub][0]);
-				// 		close(pipe_connection[pipe_sub][1]);
-				// 	}else if(i==pipe_locate[pipe_count-1]){
-				// 		dup2(pipe_connection[pipe_sub-1][0], 0);
-				// 		close(pipe_connection[pipe_sub-1][0]);
-				// 		close(pipe_connection[pipe_sub-1][1]);
-				// 	}else{
-				// 		dup2(pipe_connection[pipe_sub-1][0], 0);
-				// 		dup2(pipe_connection[pipe_sub][1], 1);
-				// 		close(pipe_connection[pipe_sub][0]);
-				// 		close(pipe_connection[pipe_sub][1]);
-				// 		close(pipe_connection[pipe_sub-1][0]);
-				// 		close(pipe_connection[pipe_sub-1][1]);
-				// 	}
-				// 	pipe_sub++;
-				// }
 				for(j=i-1;command[j]!=NULL && j>0;j--){}
 				if (execvp(command[j], command+j) < 0){
 					perror("execvp");
@@ -72,13 +71,8 @@ int main(int argc,char **argv){
 			}else{//こいつが重要だった
 				wait(NULL);
 			}
-
 		}
 	}
-
-	for (int i = 0; i < literal_num; i++) {
-    wait(NULL);
-  }
   free(pipe_locate);
 
 
