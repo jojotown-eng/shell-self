@@ -44,6 +44,7 @@ void cd(char **argv){
 
 void PipeRedirect(char **argv){
 	int is_redirect=0;
+  int is_oppose_redirect=0;
 	int *pipe_locate=NULL;
 	pipe_locate=(int*)malloc(sizeof(int));
 	pipe_locate[0]=-1;
@@ -53,7 +54,10 @@ void PipeRedirect(char **argv){
 		if(strcmp(argv[i],">")==0){
 			is_redirect=i;
 			argv[i]=NULL;
-		}else if(strcmp(argv[i],"|")==0){
+		}else if(strcmp(argv[i],"<")==0){
+      is_oppose_redirect=i;
+      argv[i]=NULL;
+    }else if(strcmp(argv[i],"|")==0){
 			pipe_count++;
 			pipe_locate=realloc(pipe_locate,(pipe_count+1) * sizeof(int));
 			pipe_locate[pipe_count]=i;
@@ -63,15 +67,39 @@ void PipeRedirect(char **argv){
 
 	int pipefd[pipe_count+1][2];
 
-	if(pipe_count==0 && is_redirect==0){
+	if(pipe_count==0 && is_redirect==0 && is_oppose_redirect==0){
 		if(fork()==0){
 			if(execvp(argv[0],argv)){
 				perror("execvp");
 				exit(EXIT_FAILURE);
 			}		
 		}
-	}else if(is_redirect!=0 && pipe_count==0){
+	}else if(is_oppose_redirect!=0){
+    if(fork()==0){
+      if(is_FileOrDir(argv[is_redirect+1])==0){
+        exit(1);
+      }
+      if(is_FileOrDir(argv[is_oppose_redirect+1])==0){
+        exit(1);
+      }
+      int fd_in=open(argv[is_oppose_redirect+1],O_RDONLY);
+      dup2(fd_in,STDIN_FILENO);
+      close(fd_in);
+      if(is_redirect!=0){
+        int fd_out=open(argv[is_redirect+1], O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+        dup2(fd_out,STDOUT_FILENO);
+        close(fd_out);
+      }
+      if(execvp(argv[0],argv)){
+				perror("execvp");
+				exit(EXIT_FAILURE);
+			}
+    }
+  }else if(is_redirect!=0 && pipe_count==0){
 		if(fork()==0){
+      if(is_FileOrDir(argv[is_redirect+1])==0){
+        exit(1);
+      }
 			int fd=open(argv[is_redirect+1], O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 			dup2(fd, 1);
 			close(fd);
