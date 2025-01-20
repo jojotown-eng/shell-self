@@ -263,18 +263,18 @@ char whitespace[] = " \t\r\n\v";
 char symbols[] = "<|>&;()";
 
 int
-gettoken(char **ps, char *es, char **q, char **eq)
+gettoken(char **ps, char *es, char **q, char **eq)//先頭と終端
 {
-  char *s;
+  char *s;//これは文字列を操作してどんな文字であるかを見るために利用する
   int ret;
 
   s = *ps;
-  while(s < es && strchr(whitespace, *s))
+  while(s < es && strchr(whitespace, *s))//空白を飛ばして、ファイルの先頭に移動
     s++;
-  if(q)
+  if(q)//qはリダイレクトやパイプのファイル名を示している
     *q = s;
   ret = *s;
-  switch(*s){
+  switch(*s){//はじめ
   case 0:
     break;
   case '|':
@@ -292,31 +292,38 @@ gettoken(char **ps, char *es, char **q, char **eq)
       s++;
     }
     break;
-  default:
+  default://文字コマンドを指している場合は、文字列を飛ばす
     ret = 'a';
-    while(s < es && !strchr(whitespace, *s) && !strchr(symbols, *s))
+    while(s < es && !strchr(whitespace, *s) && !strchr(symbols, *s))//文字列をすべて飛ばす
       s++;
     break;
   }
-  if(eq)
+  if(eq)//コマンドの終端を表している、defaultの時は
     *eq = s;
 
-  while(s < es && strchr(whitespace, *s))
+  while(s < es && strchr(whitespace, *s))//リダイレクトや何かの記号まで進める、sは結局何か意味ある文字の先頭を表す
     s++;
   *ps = s;
-  return ret;
+  return ret;//retが+の時はダブルリダイレクト、コマンドの時はaでしゅ
 }
 
+
+/**
+ * @brief 文字列を受け取って、最後の文字まで進める
+ * @note 特定の文字の場合スキップする関数,whitespaceに含まれる文字
+ * 空白文字の場合に使用するはず
+ * 初め
+ */
 int
 peek(char **ps, char *es, char *toks)
 {
   char *s;
 
   s = *ps;
-  while(s < es && strchr(whitespace, *s))
+  while(s < es && strchr(whitespace, *s))//空白を飛ばす
     s++;
   *ps = s;
-  return *s && strchr(toks, *s);
+  return *s && strchr(toks, *s);//真偽を返す
 }
 
 struct cmd *parseline(char**, char*);
@@ -330,10 +337,10 @@ parsecmd(char *s)
   char *es;
   struct cmd *cmd;
 
-  es = s + strlen(s);
+  es = s + strlen(s);//esは終端文字
   cmd = parseline(&s, es);
   peek(&s, es, "");
-  if(s != es){
+  if(s != es){//コマンドの最後まで行ったよ
     printf(2, "leftovers: %s\n", s);
     panic("syntax");
   }
@@ -342,7 +349,7 @@ parsecmd(char *s)
 }
 
 struct cmd*
-parseline(char **ps, char *es)
+parseline(char **ps, char *es)// esは終端文字 sは先頭文字
 {
   struct cmd *cmd;
 
@@ -359,7 +366,7 @@ parseline(char **ps, char *es)
 }
 
 struct cmd*
-parsepipe(char **ps, char *es)
+parsepipe(char **ps, char *es)// 先頭と終端
 {
   struct cmd *cmd;
 
@@ -375,11 +382,11 @@ struct cmd*
 parseredirs(struct cmd *cmd, char **ps, char *es)
 {
   int tok;
-  char *q, *eq;
+  char *q, *eq;//リダイレクト先のfileのはじめと最後
 
-  while(peek(ps, es, "<>")){
+  while(peek(ps, es, "<>")){//リダイレクトの記号があるかを確認
     tok = gettoken(ps, es, 0, 0);
-    if(gettoken(ps, es, &q, &eq) != 'a')
+    if(gettoken(ps, es, &q, &eq) != 'a')//リダイレクトなどがあるとき
       panic("missing file for redirection");
     switch(tok){
     case '<':
@@ -413,29 +420,29 @@ parseblock(char **ps, char *es)
 }
 
 struct cmd*
-parseexec(char **ps, char *es)
+parseexec(char **ps, char *es)//先頭と終端,実行準備
 {
   char *q, *eq;
   int tok, argc;
   struct execcmd *cmd;
   struct cmd *ret;
 
-  if(peek(ps, es, "("))
+  if(peek(ps, es, "("))//空白を飛ばして、()があるかを確認
     return parseblock(ps, es);
 
   ret = execcmd();
   cmd = (struct execcmd*)ret;
 
   argc = 0;
-  ret = parseredirs(ret, ps, es);
-  while(!peek(ps, es, "|)&;")){
-    if((tok=gettoken(ps, es, &q, &eq)) == 0)
+  ret = parseredirs(ret, ps, es);//retはtypeにEXECが入っている
+  while(!peek(ps, es, "|)&;")){//空白を飛ばして、記号がないとき
+    if((tok=gettoken(ps, es, &q, &eq)) == 0)//あんま気にせず
       break;
-    if(tok != 'a')
+    if(tok != 'a')//コマンドの時
       panic("syntax");
     cmd->argv[argc] = q;
     cmd->eargv[argc] = eq;
-    argc++;
+    argc++;//fileの出力先の個数
     if(argc >= MAXARGS)
       panic("too many args");
     ret = parseredirs(ret, ps, es);
