@@ -27,7 +27,7 @@ struct redircmd {
   int type;
   struct cmd *cmd;
   char *file;
-  char *efile;
+  char *efile;//ファイルの名前を管理するため
   int mode;
   int fd;
 };
@@ -86,7 +86,7 @@ runcmd(struct cmd *cmd)
       printf(2, "open %s failed\n", rcmd->file);
       exit();
     }
-    runcmd(rcmd->cmd);
+    runcmd(rcmd->cmd);//再帰で呼び出した場合は、その処理はどうなるのforkすると
     break;
 
   case LIST:
@@ -203,6 +203,12 @@ execcmd(void)
   return (struct cmd*)cmd;
 }
 
+/**
+ * 新しいポインタを宣言して、元々execを示していたポインタをsubcmdに代入している
+ * redirectの部分を見るとそんな感じがする
+ * キャストは何でしているの？
+ */
+
 struct cmd*
 redircmd(struct cmd *subcmd, char *file, char *efile, int mode, int fd)
 {
@@ -271,13 +277,13 @@ gettoken(char **ps, char *es, char **q, char **eq)//先頭と終端
   s = *ps;
   while(s < es && strchr(whitespace, *s))//空白を飛ばして、ファイルの先頭に移動
     s++;
-  if(q)//qはリダイレクトやパイプのファイル名を示している
+  if(q)//qはリダイレクトやパイプのファイル名を示している、アドレスが渡されているから、条件は真になる
     *q = s;
-  ret = *s;
+  ret = *s;//リダイレクト系の記号が入る、先頭が入る
   switch(*s){//はじめ
   case 0:
     break;
-  case '|':
+  case '|'://リダイレクトの符号があるときは、
   case '(':
   case ')':
   case ';':
@@ -298,7 +304,7 @@ gettoken(char **ps, char *es, char **q, char **eq)//先頭と終端
       s++;
     break;
   }
-  if(eq)//コマンドの終端を表している、defaultの時は
+  if(eq)//コマンドの終端を表している、defaultの時は、アドレスが渡されているから条件は真になる
     *eq = s;
 
   while(s < es && strchr(whitespace, *s))//リダイレクトや何かの記号まで進める、sは結局何か意味ある文字の先頭を表す
@@ -385,8 +391,8 @@ parseredirs(struct cmd *cmd, char **ps, char *es)
   char *q, *eq;//リダイレクト先のfileのはじめと最後
 
   while(peek(ps, es, "<>")){//リダイレクトの記号があるかを確認
-    tok = gettoken(ps, es, 0, 0);
-    if(gettoken(ps, es, &q, &eq) != 'a')//リダイレクトなどがあるとき
+    tok = gettoken(ps, es, 0, 0);//リダイレクトの符号を取得
+    if(gettoken(ps, es, &q, &eq) != 'a')//リダイレクト先のfileを取得
       panic("missing file for redirection");
     switch(tok){
     case '<':
@@ -436,18 +442,18 @@ parseexec(char **ps, char *es)//先頭と終端,実行準備
   argc = 0;
   ret = parseredirs(ret, ps, es);//retはtypeにEXECが入っている
   while(!peek(ps, es, "|)&;")){//空白を飛ばして、記号がないとき
-    if((tok=gettoken(ps, es, &q, &eq)) == 0)//あんま気にせず
+    if((tok=gettoken(ps, es, &q, &eq)) == 0)//0は文字列の終端を表す
       break;
     if(tok != 'a')//コマンドの時
       panic("syntax");
-    cmd->argv[argc] = q;
-    cmd->eargv[argc] = eq;
-    argc++;//fileの出力先の個数
+    cmd->argv[argc] = q;//lsならl
+    cmd->eargv[argc] = eq;//lsなら空白が入る
+    argc++;//コマンドの個数
     if(argc >= MAXARGS)
       panic("too many args");
     ret = parseredirs(ret, ps, es);
   }
-  cmd->argv[argc] = 0;
+  cmd->argv[argc] = 0;//この処理は保険のためかな、何もないとこには0を代入している
   cmd->eargv[argc] = 0;
   return ret;
 }
@@ -466,17 +472,17 @@ nulterminate(struct cmd *cmd)
   if(cmd == 0)
     return 0;
 
-  switch(cmd->type){
+  switch(cmd->type){//終端にNULLを入れいている良そう
   case EXEC:
     ecmd = (struct execcmd*)cmd;
     for(i=0; ecmd->argv[i]; i++)
-      *ecmd->eargv[i] = 0;
+      *ecmd->eargv[i] = 0;//eargvですよ終端を表しているものですよ
     break;
 
   case REDIR:
     rcmd = (struct redircmd*)cmd;
     nulterminate(rcmd->cmd);
-    *rcmd->efile = 0;
+    *rcmd->efile = 0;//ファイルの終端を表している
     break;
 
   case PIPE:
