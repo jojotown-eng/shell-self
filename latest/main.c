@@ -26,6 +26,13 @@ int main(int argc, char**argv)
 	static char buf[BUFSIZE];
 
 	while(getcmd(buf, BUFSIZE) >= 0) {
+		if(buf[0]=='c' && buf[1]=='d' && buf[2]==' '){
+			buf[strlen(buf)-1]=0;
+			if(chdir(buf+3)<0){
+				printf("cannot cd\n");
+			}
+			continue;
+		}
 		if (fork() == 0)
 			runcmd(buf);
 		wait(NULL);
