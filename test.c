@@ -17,7 +17,7 @@
 
 const char whitespace[] = " \t\r\n\v";
 
-int index=0;//配列の番号をプログラムを通して判断する
+int idx=0;//配列の番号をプログラムを通して判断する
 
 // Parsed command representation
 #define EXEC  1
@@ -91,7 +91,7 @@ pipecmd(struct cmd *left, struct cmd *right)
   return (struct cmd*)cmd;
 }
 
-int parsecmd(char **argv, char *buf, char *ebuf)
+struct cmd* parsecmd(char **argv, char *buf, char *ebuf)
 {
 	char *s;
 	int  i = 0;
@@ -100,23 +100,58 @@ int parsecmd(char **argv, char *buf, char *ebuf)
 
 	while (s < ebuf) {
 		while (s < ebuf && strchr(whitespace, *s)) s++;
-		if (ebuf <= s) return -1;
+		if (ebuf <= s) break;
 
 		argv[i++] = s;
 		while (s < ebuf && !strchr(whitespace, *s)) s++;
 		*s = '\0'; 
 		s++;
 	}
+  argv[i++]=NULL;
 
-	return 1;
+  struct execcmd *cmd;
+  struct cmd *exe;
+
+  int argc;
+
+  exe = execcmd();
+  cmd = (struct execcmd*)exe;
+  while(argv[idx]!=NULL){
+    if(strcmp(argv[idx],">")==0){
+
+    }else if(strcmp(argv[idx],"|")==0){
+
+    }else{//コマンドのとき
+      while(argv[idx]!=NULL){
+        argc=0;
+        if(strcmp(argv[idx],">")==0){
+          break;
+        }else if(strcmp(argv[idx],"|")==0){
+          break;
+        }else{
+          cmd->argv[argc]=argv[idx];
+        }
+        idx++;
+        argc++;
+      }
+    }
+  }
+  idx=0;
+  cmd->argv[argc++]=NULL;
+	return exe;
 }
 
-void runcmd(char *buf)
+void runcmd(struct cmd* cmd)
 {
-	char *argv[ARGVSIZE];
-	
-	memset(argv, 0, ARGVSIZE);
-	if (parsecmd(argv, buf, &buf[strlen(buf)]) > 0);
+	int p[2];
+
+  struct execcmd* ecmd;
+
+  switch(cmd->type){
+    case EXEC:
+      ecmd=(struct execcmd*)cmd;
+      execvp(ecmd->argv[0], ecmd->argv);
+  }
   
 	exit(-1);
 }
@@ -142,13 +177,10 @@ int main(int argc, char**argv)
 
 	while(getcmd(buf, BUFSIZE) >= 0) {
 		if (fork() == 0)
-			runcmd(buf);
+			runcmd(parsecmd(argv, buf, &buf[strlen(buf)]));
 		wait(NULL);
 	}
 
 	exit(0);
 }
 
-char cheakcmd(char **argv){//コマンドが入る,indexを使って文字の番号を見る
-	
-}
