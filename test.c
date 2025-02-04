@@ -108,6 +108,7 @@ parsepipe(char **argv){
       exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
       idx+=2;
     }else if(strcmp(argv[idx],"|")==0){
+      idx++;
       exe=pipecmd(exe,parsepipe(argv));
     } else { // コマンドのとき
       argc=0;
@@ -124,7 +125,6 @@ parsepipe(char **argv){
       cmd->argv[argc]=NULL;
     }
   }
-  idx=0;
 	return exe;
 }
 
@@ -158,6 +158,7 @@ struct cmd* parsecmd(char **argv, char *buf, char *ebuf)
       exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
       idx+=2;
     }else if(strcmp(argv[idx],"|")==0){
+      idx++;
       exe=pipecmd(exe,parsepipe(argv));
     } else { // コマンドのとき
       argc=0;
@@ -184,6 +185,7 @@ void runcmd(struct cmd* cmd)
 
   struct execcmd *ecmd;
   struct redircmd *rcmd;
+  struct pipecmd *pcmd;
 
   if(cmd==NULL)
     exit(-1);
@@ -206,6 +208,30 @@ void runcmd(struct cmd* cmd)
       dup2(fd,rcmd->fd);
       close(fd);
       runcmd(rcmd->cmd);//再帰で呼び出した場合は、その処理はどうなるのforkすると
+      break;
+
+    case PIPE:
+      pcmd = (struct pipecmd*)cmd;
+      if(pipe(p) < 0)
+        perror("pipe");
+      if(fork() == 0){
+        close(1);
+        dup(p[1]);
+        close(p[0]);
+        close(p[1]);
+        runcmd(pcmd->left);
+      }
+      if(fork() == 0){
+        close(0);
+        dup(p[0]);
+        close(p[0]);
+        close(p[1]);
+        runcmd(pcmd->right);
+      }
+      close(p[0]);
+      close(p[1]);
+      wait(NULL);
+      wait(NULL);
       break;
   }
   
