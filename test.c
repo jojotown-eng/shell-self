@@ -11,6 +11,9 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <fcntl.h>
+#include <linux/stat.h>
+#include <sys/stat.h>
 
 #define BUFSIZE  1024
 #define ARGVSIZE 100
@@ -26,6 +29,8 @@ int idx=0;//配列の番号をプログラムを通して判断する
 
 #define MAXARGS 10
 
+
+
 struct cmd{
   int type;
 };
@@ -40,7 +45,6 @@ struct redircmd {
   int type;
   struct cmd *cmd;
   char *file;
-  char *efile;//ファイルの名前を管理するため
   int mode;
   int fd;
 };
@@ -63,7 +67,7 @@ execcmd(void)
 }
 
 struct cmd*
-redircmd(struct cmd *subcmd, char *file, char *efile, int mode, int fd)
+redircmd(struct cmd *subcmd, char *file, int mode, int fd)
 {
   struct redircmd *cmd;
 
@@ -72,7 +76,6 @@ redircmd(struct cmd *subcmd, char *file, char *efile, int mode, int fd)
   cmd->type = REDIR;
   cmd->cmd = subcmd;
   cmd->file = file;
-  cmd->efile = efile;
   cmd->mode = mode;
   cmd->fd = fd;
   return (struct cmd*)cmd;
@@ -89,6 +92,40 @@ pipecmd(struct cmd *left, struct cmd *right)
   cmd->left = left;
   cmd->right = right;
   return (struct cmd*)cmd;
+}
+
+struct cmd*
+parsepipe(char **argv){
+  struct execcmd *cmd;
+  struct cmd *exe;
+
+  int argc;
+
+  exe = execcmd();
+  cmd = (struct execcmd*)exe;
+  while(argv[idx]!=NULL){
+    if(strchr("<>",argv[idx][0])){
+      exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+      idx+=2;
+    }else if(strcmp(argv[idx],"|")==0){
+      exe=pipecmd(exe,parsepipe(argv));
+    } else { // コマンドのとき
+      argc=0;
+      while(argv[idx]!=NULL){
+        if(strchr("<>",argv[idx][0])){
+          break;
+        }else if(strcmp(argv[idx],"|")==0){
+          break;
+        }else{
+          cmd->argv[argc++]=argv[idx];
+          idx++;
+        }
+      }
+      cmd->argv[argc]=NULL;
+    }
+  }
+  idx=0;
+	return exe;
 }
 
 struct cmd* parsecmd(char **argv, char *buf, char *ebuf)
@@ -117,27 +154,27 @@ struct cmd* parsecmd(char **argv, char *buf, char *ebuf)
   exe = execcmd();
   cmd = (struct execcmd*)exe;
   while(argv[idx]!=NULL){
-    if(strcmp(argv[idx],">")==0){
-
+    if(strchr("<>",argv[idx][0])){
+      exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+      idx+=2;
     }else if(strcmp(argv[idx],"|")==0){
-
-    }else{//コマンドのとき
+      exe=pipecmd(exe,parsepipe(argv));
+    } else { // コマンドのとき
+      argc=0;
       while(argv[idx]!=NULL){
-        argc=0;
-        if(strcmp(argv[idx],">")==0){
+        if(strchr("<>",argv[idx][0])){
           break;
         }else if(strcmp(argv[idx],"|")==0){
           break;
         }else{
-          cmd->argv[argc]=argv[idx];
+          cmd->argv[argc++]=argv[idx];
+          idx++;
         }
-        idx++;
-        argc++;
       }
+      cmd->argv[argc]=NULL;
     }
   }
   idx=0;
-  cmd->argv[argc++]=NULL;
 	return exe;
 }
 
@@ -145,15 +182,34 @@ void runcmd(struct cmd* cmd)
 {
 	int p[2];
 
-  struct execcmd* ecmd;
+  struct execcmd *ecmd;
+  struct redircmd *rcmd;
+
+  if(cmd==NULL)
+    exit(-1);
 
   switch(cmd->type){
+    default:
+      exit(-1);
     case EXEC:
       ecmd=(struct execcmd*)cmd;
       execvp(ecmd->argv[0], ecmd->argv);
+      perror("execvp failed");
+      break;
+    case REDIR:
+      rcmd = (struct redircmd*)cmd;
+      int fd=open(rcmd->file, rcmd->mode, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+      if (fd < 0) {
+        perror("open failed");
+        exit(-1);
+      }
+      dup2(fd,rcmd->fd);
+      close(fd);
+      runcmd(rcmd->cmd);//再帰で呼び出した場合は、その処理はどうなるのforkすると
+      break;
   }
   
-	exit(-1);
+	exit(0);
 }
 
 int getcmd(char *buf, int len)
