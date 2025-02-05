@@ -1,0 +1,320 @@
+\documentclass[a4j]{ltjsarticle}
+\usepackage{graphicx}
+\usepackage{luatexja}
+%\usepackage[margin=1in]{geometry} % 余白を1インチに設定
+\usepackage{listings,url} %日本語のコメントアウトをする場合jvlisting（もしくはjlisting）が必要
+%ここからソースコードの表示に関する設定
+\usepackage{color}
+\usepackage[hidelinks]{hyperref}
+
+
+\definecolor{OliveGreen}{rgb}{0.0,0.6,0.0}
+\definecolor{Orenge}{rgb}{0.89,0.55,0}
+\definecolor{SkyBlue}{rgb}{0.28, 0.28, 0.95}
+\lstset{
+  basicstyle={\ttfamily},
+  identifierstyle={\small},
+  commentstyle={\smallitshape},
+  keywordstyle={\small\bfseries},
+  ndkeywordstyle={\small},
+  stringstyle={\small\ttfamily},
+  frame={tb},
+  breaklines=true,
+  columns=[l]{fullflexible},
+  numbers=left,
+  xrightmargin=0em,
+  xleftmargin=3em,
+  numberstyle={\scriptsize},
+  stepnumber=1,
+  numbersep=1em,
+	tabsize=2,
+  lineskip=-0.5ex,
+  keywordstyle={\color{SkyBlue}},     %キーワード(int, ifなど)の書体指定
+  commentstyle={\color{OliveGreen}},  %注釈の書体
+  stringstyle=\color{Orenge}          %文字列
+}
+
+\renewcommand{\lstlistingname}{ソースコード}
+\renewcommand{\labelenumi}{(\arabic{enumi})}
+
+\begin{document}
+  \section{目的}
+    本課題は、主にリストを用いてデータを処理することを目的とする。リストは、配列とは異なり
+    プログラム実行中に新たに要素を追加することができる。そのため、リストは多くの場面で利用されている。
+    その一例として、PCの基本ソフトであるOSでもリストは多用されている。また、配列で要素を確保するmalloc関数も裏ではリスト
+    構造が存在する。そのため、リストの操作はコンピュータサイエンスにおいて重要な要素である。今回は課題を通して、
+    C言語を用いたリスト操作について学習し、諸問題の解決に応用することを目的とする。
+  \section{構成}
+    本レポートは、それぞれの課題に対して実装、考察を行う。なお、結論は最後の総括として記述する。
+  \section{課題1-1(ソート)}
+    \subsection{設計}
+      今回の課題は、標準入力から受け取った数値をリストの昇順に追加するプログラムである。
+      まず、入力部分について説明する。今回は入力部分の形式が指定されているので、fgetsを用いて
+      形式をすべて受け取る。その後、ポインタを用いてすべての文字列を見ていき、該当部分を抜き出し
+      リストの要素として格納する。
+      それぞれのリストのノードは数値を格納するint型の変数がある。ノードの変数値が昇順になるように
+      要素を受け取る。すべての入力を受けまとめてソートするよりも、受け取った数値を追加する部分を昇順にするようにした。
+      
+    \subsection{実装}
+      次に示すソースコードは、設計で述べたプログラムを実装したものである。
+      まず初めに、入力部分のコードを示す。
+      \begin{lstlisting}[language=C,caption=課題1-1(入力部分)]
+ListNode head1;
+head1.val=0;
+head1.next=NULL;
+
+char data[MAXSIZE];   ･･･(1)
+char *yoso[MAXSIZE];
+int i=0;
+
+if (fgets(data, sizeof(data), stdin) != NULL) {   ･･･(2)
+  char *s = data;
+  s++; 
+  while (*s != '\0') {
+    while (*s == ' ' || *s == ':') s++;
+    yoso[i] = s;
+    while (*s != ' ' && *s != '\0') s++;
+    if (*s == ' ') {
+      *s = '\0';
+      s++;
+    }
+    insert(&head1, atoi(yoso[i]));
+    i++;
+  }
+}
+
+printList(&head1);
+printf("Number of elements : %d\n",head1.val);
+      \end{lstlisting}
+      \begin{enumerate}
+        \item 変数定義
+        \\ \indent 入力された文字列を格納するための変数dataと、その文字列を分割するための変数yosoを定義する。
+        yoso配列には、dataの文字列を分割した後、文字列の先頭のアドレスを各要素に格納する。
+        \item 文字列分割
+        \\ \indent 要素数を受け取る関数内ですべての要素をカウントするようにしているため、$N$の値は受け取らない。
+        その他の要素は、空白であればスキップしそうでない場合は、yoso配列に格納する。yosoの値をint型に変換した後、
+        insert関数を用いてリストに追加する。
+      \end{enumerate}
+
+
+      \begin{lstlisting}[language=C,caption=課題1-1(insert関数)]
+void insert(ListNode *head, int val) {
+  /* Write you own code here */
+  ListNode *pos = head;    ･･･(1)
+  pos->val++;
+  if(pos->next==NULL){    ･･･(2)
+    pos->next = getNewNode(val, NULL);
+  }else if(val < (pos->next)->val){
+    pos->next=getNewNode(val,pos->next);
+  }else{
+    pos=pos->next;
+    ListNode *prenode=pos;
+    while(pos!=NULL){
+      if(val < pos->val){
+        break;
+      }
+      prenode=pos;
+      pos=pos->next;
+    }
+    prenode->next = getNewNode(val, pos);
+  }
+}
+      \end{lstlisting}
+      \begin{enumerate}
+        \item 先頭アドレスのコピー
+        \\ \indent 関数の引数として受け取った、リストの先頭アドレスをposにコピーする。
+        mainのプログラム内でリストの先頭アドレスが変更されると、元のアドレスを参照できなくなるため、
+        アドレスコピーを行う。
+        \item リスト挿入
+        \\ \indent 先頭のノードはリストの要素数を保持している。そのため、次のノードがNULLであれはノードを新たに生成する。
+        ノードの個数が一つであれば、一つのノードの値と比較して、新たな数値が小さいのであれば間に新たなリストを挿入する。
+        ただ、後ろにノードを挿入するのであれば、昇順に並べられるように値を捜査する。挿入する値が、リストの値より大きくなった時、
+        大きくなったノードのひとつ前のノードを用いて新たなノードを挿入する。
+      \end{enumerate}
+    \subsection{実行結果}
+      次に示す画像が、プログラムの実行結果である。
+    \begin{figure}[h]
+      \centering
+      \begin{minipage}[b]{0.49\columnwidth}
+          \centering
+          \includegraphics[width=0.9\columnwidth]{image/課題1-1-実行結果.png}
+          \caption{課題1-1-実行結果}
+          \label{fig:課題1-1-実行結果}
+      \end{minipage}
+      \begin{minipage}[b]{0.49\columnwidth}
+          \centering
+          \includegraphics[width=0.9\columnwidth]{image/課題1-1-実行結果_2.png}
+          \caption{課題1-1-実行結果2}
+          \label{fig:課題1-1-実行結果_2}
+      \end{minipage}
+    \end{figure}
+      
+      図\ref{fig:課題1-1-実行結果}と図\ref{fig:課題1-1-実行結果_2}から、入力された数値が
+      昇順に並び替えられていることがわかる。また、図\ref{fig:課題1-1-実行結果_2}からわかるように
+      数値が重複していても正しく出力が得られている。
+      
+\clearpage
+    \subsection{考察}
+    今回の課題は、入力とソートの2つの部分を実装する必要があった。入力に関しては、形式が決まっていたためfgetsで
+    すべての文字列を受け取ることにしたが、scanfを用いて逐次値を見ていく方が効率が良いと考える。また、ソートに関しては、
+    逐次どこに追加しているを見て行っているため、最後に要素を追加してリストのすべてをソートするよりは、手順が少なく効率的で
+    あると考える。
+
+  \section{課題1-2(集合を求める)}
+    \subsection{設計}
+      今回の課題は、2つのリストを受け取り、和集合、積集合、差集合を求めるプログラムである。今回、2通りの方法を試し
+      どちらの方が効率的であるかを調べる。1つ目は、単純に片方のリストの要素1つがも片方に含まれるかを調べる方法である。
+      これは、リスト一つに対して、もう片方のリストすべてを参照するため計算量は$O(N*M)$($N,M$はリストのノードの個数)となる。
+      2つ目は、ポインタ方を用いた集合の求め方である。これは、両方のリストを見ていき、小さい数値を次に進めて、大きいリストは
+      そのままにする。積集合であれば共通要素を抜き取るなどの処理を行う。この方法は、計算量が$O(N+M)$となるため、1つ目に記述
+      した方法に比べて効率的であると考える。
+    \subsection{実装}
+      次に示すソースコードは、設計で述べたプログラムを実装したものである。
+      なお、今回は和集合、積集合、差集合を求め、リストに代入する処理が関数であるため関数の処理部分を示す。
+      次に示す関数は、積集合を表す関数である。
+      \begin{lstlisting}[language=C,caption=課題1-2(getIntersect関数)]
+ListNode *getIntersect(ListNode *a, ListNode *b){
+  ListNode *and;
+  and=getNewNode(0,NULL);
+  ListNode *a_copy,*b_copy;
+  a_copy=a->next,b_copy=b->next;
+  while(a_copy!=NULL && b_copy!=NULL){
+    if(a_copy->val==b_copy->val){    ･･･(1)
+      insert(and,a_copy->val);
+      a_copy=a_copy->next;
+      b_copy=b_copy->next;
+    }else if(a_copy->val>b_copy->val){
+      b_copy=b_copy->next;
+    }else{
+      a_copy=a_copy->next;
+    }
+  }
+  return and;
+}
+        \end{lstlisting}
+        \begin{enumerate}
+          \item 共通部分の処理
+          \\ \indent 片方のリストが終端まで達した場合は、それ以上リストに共通部分がないことを表すため処理を終了する。
+          小さい値を進めていき、リストの値が同じになった場合はinsert関数を用いてリストの要素として追加する。
+          
+        \end{enumerate}
+
+        次に示す関数は、和集合を表す関数である。
+
+        \begin{lstlisting}[language=C,caption=課題1-2(get関数)]
+ListNode *getUnion(ListNode *a,ListNode *b){
+ListNode *uni=getNewNode(0,NULL);
+ListNode *a_copy,*b_copy;
+a_copy=a->next;
+b_copy=b->next;
+int preserve[2]={-1,-1};//絶対にありえない値
+while(a_copy!=NULL || b_copy!=NULL){       ･･･(1)
+  if(a_copy==NULL){
+    preserve[1]=b_copy->val;
+    b_copy=b_copy->next;
+  }else if(b_copy==NULL){
+    preserve[1]=a_copy->val;
+    a_copy=a_copy->next;
+  }else if(a_copy->val==b_copy->val){
+    preserve[1]=a_copy->val;
+    a_copy=a_copy->next;
+    b_copy=b_copy->next;
+  }else if(a_copy->val>b_copy->val){
+    preserve[1]=b_copy->val;
+    b_copy=b_copy->next;
+  }else{
+    preserve[1]=a_copy->val;
+    a_copy=a_copy->next;
+  }
+
+  insert(uni,preserve[1]);
+  preserve[0]=preserve[1];   ･･･(2)
+}
+
+return uni;
+}
+        \end{lstlisting}
+        \begin{enumerate}
+          \item 
+          \\ \indent 片方のリストが終端まで達した場合は、それ以上リストに共通部分がないことを表すため処理を終了する。
+          小さい値を進めていき、リストの値が同じになった場合はinsert関数を用いてリストの要素として追加する。
+          
+        \end{enumerate}
+
+  \renewcommand{\thelstlisting}{\arabic{lstlisting}}  % リスト番号を付録ごとに1から始める
+  \setcounter{lstlisting}{0}  % リストの番号を付録セクションごとに1から始める
+    
+  \section{結論}
+  今回の課題である問題に関しては,すべて答えを導き出すことができた.数値の順序を並び替えるときは
+  クイックソートを用いることで,データ量が多い場合でも柔軟に対応できることがわかった.
+  また,CPUにキャッシュが利用されているようにあらかじめ計算値を保存しておいた方が,実際に演算するよりも実行
+  速度が早いことがわかった.しかし,キャッシュはメモリを多く利用するため必要なものに絞って利用することが
+  重要だと考える
+
+  \section*{付録}
+  \renewcommand{\lstlistingname}{付録}
+  \begin{lstlisting}[language=C,caption=quicksort関数]
+void quicksort(int *p,int left,int right){
+  int Left,Right,base;
+  Left=left;
+  Right=right;
+  base=p[(left+right)/2];
+
+  while(1){
+    while(p[Left]>base)Left++;
+    while(p[Right]<base)Right--;
+    if(Left>=Right)break;
+    swap(&p[Left],&p[Right]);
+    Left++;
+    Right--;
+  }
+
+  if(left<Left-1)quicksort(p,left,Left-1);
+  if(Right+1<right)quicksort(p,Right+1,right);
+}
+  \end{lstlisting}
+
+  \begin{lstlisting}[language=C,caption=乱数生成プログラム]
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int main() {
+    srand(time(NULL));
+
+    for (int i = 0; i < 100; ++i) {
+        printf("%d", rand() % 100);
+        if (i < 999) {
+            printf(" ");
+        }
+    }
+    printf("\n"); 
+
+    return 0;
+}
+    
+  \end{lstlisting}
+  
+  \begin{thebibliography}{99}
+
+		\bibitem{knuth1984}
+			エラトステネスのふるい,
+			2024/12/15,
+			\url{https://algo-method.com/descriptions/64}
+
+    \bibitem{knuth1984}
+			webpia,
+			2024/12/15,
+			\url{https://webpia.jp/quick_sort/}
+
+      \bibitem{knuth1984}
+			Qiita,
+			2024/12/15,
+			\url{https://qiita.com/cotrpepe/items/1f4c38cc9d3e3a5f5e9c}
+			
+		
+			
+	\end{thebibliography}
+
+
+\end{document}
