@@ -105,7 +105,23 @@ parsepipe(char **argv){
   cmd = (struct execcmd*)exe;
   while(argv[idx]!=NULL){
     if(strchr("<>",argv[idx][0])){
-      exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+      if(strchr("<>|",argv[idx+1][0])){
+        printf("syntax error\n");
+        exit(-1);
+      }
+      switch(argv[idx][0]){
+        case '<':
+          exe=redircmd(exe,argv[idx+1],O_RDONLY, 0);
+          break;
+        case '>':
+          if(argv[idx][1]=='>'){
+            exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+          }else{
+            exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+          }
+          break;
+      }
+      
       idx+=2;
     }else if(strcmp(argv[idx],"|")==0){
       idx++;
@@ -155,7 +171,23 @@ struct cmd* parsecmd(char **argv, char *buf, char *ebuf)
   cmd = (struct execcmd*)exe;
   while(argv[idx]!=NULL){
     if(strchr("<>",argv[idx][0])){
-      exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+      if(strchr("<>|",argv[idx+1][0])){
+        printf("syntax error\n");
+        exit(-1);
+      }
+      switch(argv[idx][0]){
+        case '<':
+          exe=redircmd(exe,argv[idx+1],O_RDONLY, 0);
+          break;
+        case '>':
+          if(argv[idx][1]=='>'){
+            exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+          }else{
+            exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+          }
+          break;
+      }
+      
       idx+=2;
     }else if(strcmp(argv[idx],"|")==0){
       idx++;
