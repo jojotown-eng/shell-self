@@ -29,8 +29,6 @@ int idx=0;//配列の番号をプログラムを通して判断する
 
 #define MAXARGS 10
 
-
-
 struct cmd{
   int type;
 };
@@ -38,7 +36,6 @@ struct cmd{
 struct execcmd {
   int type;
   char *argv[MAXARGS];
-  //char *eargv[MAXARGS];
 };
 
 struct redircmd {
@@ -232,14 +229,14 @@ void runcmd(struct cmd* cmd)
       break;
     case REDIR:
       rcmd = (struct redircmd*)cmd;
-      int fd=open(rcmd->file, rcmd->mode, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+      int fd=open(rcmd->file, rcmd->mode);
       if (fd < 0) {
         perror("open failed");
         exit(-1);
       }
       dup2(fd,rcmd->fd);
       close(fd);
-      runcmd(rcmd->cmd);//再帰で呼び出した場合は、その処理はどうなるのforkすると
+      runcmd(rcmd->cmd);
       break;
 
     case PIPE:
@@ -290,6 +287,13 @@ int main(int argc, char**argv)
 	static char buf[BUFSIZE];
 
 	while(getcmd(buf, BUFSIZE) >= 0) {
+    if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
+      // Chdir must be called by the parent, not the child.
+      buf[strlen(buf)-1] = 0;  // chop \n
+      if(chdir(buf+3) < 0)
+        printf("cannot cd %s\n", buf+3);
+      continue;
+    }
 		if (fork() == 0)
 			runcmd(parsecmd(argv, buf, &buf[strlen(buf)]));
 		wait(NULL);
