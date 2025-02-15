@@ -37,7 +37,17 @@
 \renewcommand{\lstlistingname}{ソースコード}
 \renewcommand{\labelenumi}{(\arabic{enumi})}
 
+\title{後期SAILレポート\\
+-簡易シェルの実装-}
+\author{24266098\\
+工学部知能情報システム工学科\\
+見崎成}
+\date{\today}
+
 \begin{document}
+
+\maketitle
+
   \section{目的}
   本レポートの目的は、シェルの内部の動作原理を理解することである。シェルとは、ユーザが入力したコマンドを解釈し、
   コマンドに応じて必要な処理を行うプログラムである。このシェルの機能を理解するために、代表的なシェルの機能である
@@ -91,7 +101,7 @@ void cd(char **argv){
   \section{リファクタリング}
     自分が作成したプログラムは、拡張性がなく、可読性が低い。コマンドとしてほかにも考えられる
     入力が存在するが、あらゆる場合に対応するとなるとプログラムがより複雑になる。そのため、
-    他人が作成したプログラムを読み、コードの見やすさや拡張性について理解を得た。
+    XV6のOSのコードを読み、コードの見やすさや拡張性について理解を得た。
     参考プログラムから、リファクタリングを施した点は次の3つである。
     \begin{enumerate}
       \item コマンドの内容を構造体で管理
@@ -383,25 +393,841 @@ void PipeRedirect(char **argv){
 }
   \end{lstlisting}
 
+  \begin{lstlisting}[language=C,caption=修正したコード]
+/*
+*  Copyright (c) 2017 Hiroshi Yamada <hiroshiy@cc.tuat.ac.jp>
+*
+*  a simple shell
+*/
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <linux/stat.h>
+#include <sys/stat.h>
+
+#define BUFSIZE  1024
+#define ARGVSIZE 100
+
+const char whitespace[] = " \t\r\n\v";
+
+int idx=0;//配列の番号をプログラムを通して判断する
+
+// Parsed command representation
+#define EXEC  1
+#define REDIR 2
+#define PIPE  3
+
+#define MAXARGS 10
+
+struct cmd{
+  int type;
+};
+
+struct execcmd {
+  int type;
+  char *argv[MAXARGS];
+};
+
+struct redircmd {
+  int type;
+  struct cmd *cmd;
+  char *file;
+  int mode;
+  int fd;
+};
+
+struct pipecmd {
+  int type;
+  struct cmd *left;
+  struct cmd *right;
+};
+
+struct cmd*
+execcmd(void)
+{
+  struct execcmd *cmd;
+
+  cmd = malloc(sizeof(*cmd));
+  memset(cmd, 0, sizeof(*cmd));
+  cmd->type = EXEC;
+  return (struct cmd*)cmd;
+}
+
+struct cmd*
+redircmd(struct cmd *subcmd, char *file, int mode, int fd)
+{
+  struct redircmd *cmd;
+
+  cmd = malloc(sizeof(*cmd));
+  memset(cmd, 0, sizeof(*cmd));
+  cmd->type = REDIR;
+  cmd->cmd = subcmd;
+  cmd->file = file;
+  cmd->mode = mode;
+  cmd->fd = fd;
+  return (struct cmd*)cmd;
+}
+
+struct cmd*
+pipecmd(struct cmd *left, struct cmd *right)
+{
+  struct pipecmd *cmd;
+
+  cmd = malloc(sizeof(*cmd));
+  memset(cmd, 0, sizeof(*cmd));
+  cmd->type = PIPE;
+  cmd->left = left;
+  cmd->right = right;
+  return (struct cmd*)cmd;
+}
+
+struct cmd*
+parsepipe(char **argv){
+  struct execcmd *cmd;
+  struct cmd *exe;
+
+  int argc;
+
+  exe = execcmd();
+  cmd = (struct execcmd*)exe;
+  while(argv[idx]!=NULL){
+    if(strchr("<>",argv[idx][0])){
+      if(strchr("<>|",argv[idx+1][0])){
+        printf("syntax error\n");
+        exit(-1);
+      }
+      switch(argv[idx][0]){
+        case '<':
+          exe=redircmd(exe,argv[idx+1],O_RDONLY, 0);
+          break;
+        case '>':
+          if(argv[idx][1]=='>'){
+            exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+          }else{
+            exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+          }
+          break;
+      }
+      
+      idx+=2;
+    }else if(strcmp(argv[idx],"|")==0){
+      idx++;
+      exe=pipecmd(exe,parsepipe(argv));
+    } else { // コマンドのとき
+      argc=0;
+      while(argv[idx]!=NULL){
+        if(strchr("<>",argv[idx][0])){
+          break;
+        }else if(strcmp(argv[idx],"|")==0){
+          break;
+        }else{
+          cmd->argv[argc++]=argv[idx];
+          idx++;
+        }
+      }
+      cmd->argv[argc]=NULL;
+    }
+  }
+  return exe;
+}
+
+struct cmd* parsecmd(char **argv, char *buf, char *ebuf)
+{
+  char *s;
+  int  i = 0;
+  
+  s = buf;
+
+  while (s < ebuf) {
+    while (s < ebuf && strchr(whitespace, *s)) s++;
+    if (ebuf <= s) break;
+
+    argv[i++] = s;
+    while (s < ebuf && !strchr(whitespace, *s)) s++;
+    *s = '\0'; 
+    s++;
+  }
+  argv[i++]=NULL;
+
+  struct execcmd *cmd;
+  struct cmd *exe;
+
+  int argc;
+
+  exe = execcmd();
+  cmd = (struct execcmd*)exe;
+  while(argv[idx]!=NULL){
+    if(strchr("<>",argv[idx][0])){
+      if(strchr("<>|",argv[idx+1][0])){
+        printf("syntax error\n");
+        exit(-1);
+      }
+      switch(argv[idx][0]){
+        case '<':
+          exe=redircmd(exe,argv[idx+1],O_RDONLY, 0);
+          break;
+        case '>':
+          if(argv[idx][1]=='>'){
+            exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+          }else{
+            exe=redircmd(exe,argv[idx+1],O_WRONLY|O_CREAT, 1);
+          }
+          break;
+      }
+      
+      idx+=2;
+    }else if(strcmp(argv[idx],"|")==0){
+      idx++;
+      exe=pipecmd(exe,parsepipe(argv));
+    } else { // コマンドのとき
+      argc=0;
+      while(argv[idx]!=NULL){
+        if(strchr("<>",argv[idx][0])){
+          break;
+        }else if(strcmp(argv[idx],"|")==0){
+          break;
+        }else{
+          cmd->argv[argc++]=argv[idx];
+          idx++;
+        }
+      }
+      cmd->argv[argc]=NULL;
+    }
+  }
+  idx=0;
+  return exe;
+}
+
+void runcmd(struct cmd* cmd)
+{
+  int p[2];
+
+  struct execcmd *ecmd;
+  struct redircmd *rcmd;
+  struct pipecmd *pcmd;
+
+  if(cmd==NULL)
+    exit(-1);
+
+  switch(cmd->type){
+    default:
+      exit(-1);
+    case EXEC:
+      ecmd=(struct execcmd*)cmd;
+      execvp(ecmd->argv[0], ecmd->argv);
+      perror("execvp failed");
+      break;
+    case REDIR:
+      rcmd = (struct redircmd*)cmd;
+      int fd=open(rcmd->file, rcmd->mode);
+      if (fd < 0) {
+        perror("open failed");
+        exit(-1);
+      }
+      dup2(fd,rcmd->fd);
+      close(fd);
+      runcmd(rcmd->cmd);
+      break;
+
+    case PIPE:
+      pcmd = (struct pipecmd*)cmd;
+      if(pipe(p) < 0)
+        perror("pipe");
+      if(fork() == 0){
+        close(1);
+        dup(p[1]);
+        close(p[0]);
+        close(p[1]);
+        runcmd(pcmd->left);
+      }
+      if(fork() == 0){
+        close(0);
+        dup(p[0]);
+        close(p[0]);
+        close(p[1]);
+        runcmd(pcmd->right);
+      }
+      close(p[0]);
+      close(p[1]);
+      wait(NULL);
+      wait(NULL);
+      break;
+  }
+  
+  exit(0);
+}
+
+int getcmd(char *buf, int len)
+{
+  char path_name[BUFSIZE];
+  getcwd(path_name, BUFSIZE);
+  printf("Joe:%s ",path_name);
+  printf("> ");
+  fflush(stdin);
+  memset(buf, 0, len);
+  fgets(buf, len, stdin);
+
+  if (buf[0] == 0)
+    return -1;
+  return 0;
+}
+
+int main(int argc, char**argv)
+{
+  static char buf[BUFSIZE];
+
+  while(getcmd(buf, BUFSIZE) >= 0) {
+    if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
+      // Chdir must be called by the parent, not the child.
+      buf[strlen(buf)-1] = 0;  // chop \n
+      if(chdir(buf+3) < 0)
+        printf("cannot cd %s\n", buf+3);
+      continue;
+    }
+    if (fork() == 0)
+      runcmd(parsecmd(argv, buf, &buf[strlen(buf)]));
+    wait(NULL);
+  }
+
+  exit(0);
+}
+   
+
+  \end{lstlisting}
+
+  \begin{lstlisting}[language=C,caption=XV6のコード]
+    // Shell.
+
+#include "types.h"
+#include "user.h"
+#include "fcntl.h"
+
+// Parsed command representation
+#define EXEC  1
+#define REDIR 2
+#define PIPE  3
+#define LIST  4
+#define BACK  5
+
+#define MAXARGS 10
+
+struct cmd {
+  int type;
+};
+
+struct execcmd {
+  int type;
+  char *argv[MAXARGS];
+  char *eargv[MAXARGS];
+};
+
+struct redircmd {
+  int type;
+  struct cmd *cmd;
+  char *file;
+  char *efile;//ファイルの名前を管理するため
+  int mode;
+  int fd;
+};
+
+struct pipecmd {
+  int type;
+  struct cmd *left;
+  struct cmd *right;
+};
+
+struct listcmd {
+  int type;
+  struct cmd *left;
+  struct cmd *right;
+};
+
+struct backcmd {
+  int type;
+  struct cmd *cmd;
+};
+
+int fork1(void);  // Fork but panics on failure.
+void panic(char*);
+struct cmd *parsecmd(char*);
+
+// Execute cmd.  Never returns.
+void
+runcmd(struct cmd *cmd)
+{
+  int p[2];
+  struct backcmd *bcmd;
+  struct execcmd *ecmd;
+  struct listcmd *lcmd;
+  struct pipecmd *pcmd;
+  struct redircmd *rcmd;
+
+  if(cmd == 0)
+    exit();
+
+  switch(cmd->type){
+  default:
+    panic("runcmd");
+
+  case EXEC:
+    ecmd = (struct execcmd*)cmd;
+    if(ecmd->argv[0] == 0)
+      exit();
+    exec(ecmd->argv[0], ecmd->argv);
+    printf(2, "exec %s failed\n", ecmd->argv[0]);
+    break;
+
+  case REDIR:
+    rcmd = (struct redircmd*)cmd;
+    close(rcmd->fd);
+    if(open(rcmd->file, rcmd->mode) < 0){
+      printf(2, "open %s failed\n", rcmd->file);
+      exit();
+    }
+    runcmd(rcmd->cmd);//再帰で呼び出した場合は、その処理はどうなるのforkすると
+    break;
+
+  case LIST:
+    lcmd = (struct listcmd*)cmd;
+    if(fork1() == 0)
+      runcmd(lcmd->left);
+    wait();
+    runcmd(lcmd->right);
+    break;
+
+  case PIPE:
+    pcmd = (struct pipecmd*)cmd;
+    if(pipe(p) < 0)
+      panic("pipe");
+    if(fork1() == 0){
+      close(1);
+      dup(p[1]);
+      close(p[0]);
+      close(p[1]);
+      runcmd(pcmd->left);
+    }
+    if(fork1() == 0){
+      close(0);
+      dup(p[0]);
+      close(p[0]);
+      close(p[1]);
+      runcmd(pcmd->right);
+    }
+    close(p[0]);
+    close(p[1]);
+    wait();
+    wait();
+    break;
+
+  case BACK:
+    bcmd = (struct backcmd*)cmd;
+    if(fork1() == 0)
+      runcmd(bcmd->cmd);
+    break;
+  }
+  exit();
+}
+
+int
+getcmd(char *buf, int nbuf)
+{
+  printf(2, "$ ");
+  memset(buf, 0, nbuf);
+  gets(buf, nbuf);
+  if(buf[0] == 0) // EOF
+    return -1;
+  return 0;
+}
+
+int
+main(void)
+{
+  static char buf[100];
+  int fd;
+
+  // Ensure that three file descriptors are open.
+  while((fd = open("console", O_RDWR)) >= 0){
+    if(fd >= 3){
+      close(fd);
+      break;
+    }
+  }
+
+  // Read and run input commands.
+  while(getcmd(buf, sizeof(buf)) >= 0){
+    if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
+      // Chdir must be called by the parent, not the child.
+      buf[strlen(buf)-1] = 0;  // chop \n
+      if(chdir(buf+3) < 0)
+        printf(2, "cannot cd %s\n", buf+3);
+      continue;
+    }
+    if(fork1() == 0)
+      runcmd(parsecmd(buf));
+    wait();
+  }
+  exit();
+}
+
+void
+panic(char *s)
+{
+  printf(2, "%s\n", s);
+  exit();
+}
+
+int
+fork1(void)
+{
+  int pid;
+
+  pid = fork();
+  if(pid == -1)
+    panic("fork");
+  return pid;
+}
+
+//PAGEBREAK!
+// Constructors
+
+struct cmd*
+execcmd(void)
+{
+  struct execcmd *cmd;
+
+  cmd = malloc(sizeof(*cmd));
+  memset(cmd, 0, sizeof(*cmd));
+  cmd->type = EXEC;
+  return (struct cmd*)cmd;
+}
+
+/**
+ * 新しいポインタを宣言して、元々execを示していたポインタをsubcmdに代入している
+ * redirectの部分を見るとそんな感じがする
+ * キャストは何でしているの？
+ */
+
+struct cmd*
+redircmd(struct cmd *subcmd, char *file, char *efile, int mode, int fd)
+{
+  struct redircmd *cmd;
+
+  cmd = malloc(sizeof(*cmd));
+  memset(cmd, 0, sizeof(*cmd));
+  cmd->type = REDIR;
+  cmd->cmd = subcmd;
+  cmd->file = file;
+  cmd->efile = efile;
+  cmd->mode = mode;
+  cmd->fd = fd;
+  return (struct cmd*)cmd;
+}
+
+struct cmd*
+pipecmd(struct cmd *left, struct cmd *right)
+{
+  struct pipecmd *cmd;
+
+  cmd = malloc(sizeof(*cmd));
+  memset(cmd, 0, sizeof(*cmd));
+  cmd->type = PIPE;
+  cmd->left = left;
+  cmd->right = right;
+  return (struct cmd*)cmd;
+}
+
+struct cmd*
+listcmd(struct cmd *left, struct cmd *right)
+{
+  struct listcmd *cmd;
+
+  cmd = malloc(sizeof(*cmd));
+  memset(cmd, 0, sizeof(*cmd));
+  cmd->type = LIST;
+  cmd->left = left;
+  cmd->right = right;
+  return (struct cmd*)cmd;
+}
+
+struct cmd*
+backcmd(struct cmd *subcmd)
+{
+  struct backcmd *cmd;
+
+  cmd = malloc(sizeof(*cmd));
+  memset(cmd, 0, sizeof(*cmd));
+  cmd->type = BACK;
+  cmd->cmd = subcmd;
+  return (struct cmd*)cmd;
+}
+//PAGEBREAK!
+// Parsing
+
+char whitespace[] = " \t\r\n\v";
+char symbols[] = "<|>&;()";
+
+int
+gettoken(char **ps, char *es, char **q, char **eq)//先頭と終端
+{
+  char *s;//これは文字列を操作してどんな文字であるかを見るために利用する
+  int ret;
+
+  s = *ps;
+  while(s < es && strchr(whitespace, *s))//空白を飛ばして、ファイルの先頭に移動
+    s++;
+  if(q)//qはリダイレクトやパイプのファイル名を示している、アドレスが渡されているから、条件は真になる
+    *q = s;
+  ret = *s;//リダイレクト系の記号が入る、先頭が入る
+  switch(*s){//はじめ
+  case 0:
+    break;
+  case '|'://リダイレクトの符号があるときは、
+  case '(':
+  case ')':
+  case ';':
+  case '&':
+  case '<':
+    s++;
+    break;
+  case '>':
+    s++;
+    if(*s == '>'){
+      ret = '+';
+      s++;
+    }
+    break;
+  default://文字コマンドを指している場合は、文字列を飛ばす
+    ret = 'a';
+    while(s < es && !strchr(whitespace, *s) && !strchr(symbols, *s))//文字列をすべて飛ばす
+      s++;
+    break;
+  }
+  if(eq)//コマンドの終端を表している、defaultの時は、アドレスが渡されているから条件は真になる
+    *eq = s;
+
+  while(s < es && strchr(whitespace, *s))//リダイレクトや何かの記号まで進める、sは結局何か意味ある文字の先頭を表す
+    s++;
+  *ps = s;
+  return ret;//retが+の時はダブルリダイレクト、コマンドの時はaでしゅ
+}
+
+
+/**
+ * @brief 文字列を受け取って、最後の文字まで進める
+ * @note 特定の文字の場合スキップする関数,whitespaceに含まれる文字
+ * 空白文字の場合に使用するはず
+ * 初め
+ */
+int
+peek(char **ps, char *es, char *toks)
+{
+  char *s;
+
+  s = *ps;
+  while(s < es && strchr(whitespace, *s))//空白を飛ばす
+    s++;
+  *ps = s;
+  return *s && strchr(toks, *s);//真偽を返す
+}
+
+struct cmd *parseline(char**, char*);
+struct cmd *parsepipe(char**, char*);
+struct cmd *parseexec(char**, char*);
+struct cmd *nulterminate(struct cmd*);
+
+struct cmd*
+parsecmd(char *s)
+{
+  char *es;
+  struct cmd *cmd;
+
+  es = s + strlen(s);//esは終端文字
+  cmd = parseline(&s, es);
+  peek(&s, es, "");
+  if(s != es){//コマンドの最後まで行ったよ
+    printf(2, "leftovers: %s\n", s);
+    panic("syntax");
+  }
+  nulterminate(cmd);
+  return cmd;
+}
+
+struct cmd*
+parseline(char **ps, char *es)// esは終端文字 sは先頭文字
+{
+  struct cmd *cmd;
+
+  cmd = parsepipe(ps, es);
+  while(peek(ps, es, "&")){
+    gettoken(ps, es, 0, 0);
+    cmd = backcmd(cmd);
+  }
+  if(peek(ps, es, ";")){
+    gettoken(ps, es, 0, 0);
+    cmd = listcmd(cmd, parseline(ps, es));
+  }
+  return cmd;
+}
+
+struct cmd*
+parsepipe(char **ps, char *es)// 先頭と終端
+{
+  struct cmd *cmd;
+
+  cmd = parseexec(ps, es);
+  if(peek(ps, es, "|")){
+    gettoken(ps, es, 0, 0);
+    cmd = pipecmd(cmd, parsepipe(ps, es));
+  }
+  return cmd;
+}
+
+struct cmd*
+parseredirs(struct cmd *cmd, char **ps, char *es)
+{
+  int tok;
+  char *q, *eq;//リダイレクト先のfileのはじめと最後
+
+  while(peek(ps, es, "<>")){//リダイレクトの記号があるかを確認
+    tok = gettoken(ps, es, 0, 0);//リダイレクトの符号を取得
+    if(gettoken(ps, es, &q, &eq) != 'a')//リダイレクト先のfileを取得
+      panic("missing file for redirection");
+    switch(tok){
+    case '<':
+      cmd = redircmd(cmd, q, eq, O_RDONLY, 0);
+      break;
+    case '>':
+      cmd = redircmd(cmd, q, eq, O_WRONLY|O_CREATE, 1);
+      break;
+    case '+':  // >>
+      cmd = redircmd(cmd, q, eq, O_WRONLY|O_CREATE, 1);
+      break;
+    }
+  }
+  return cmd;
+}
+
+struct cmd*
+parseblock(char **ps, char *es)
+{
+  struct cmd *cmd;
+
+  if(!peek(ps, es, "("))
+    panic("parseblock");
+  gettoken(ps, es, 0, 0);
+  cmd = parseline(ps, es);
+  if(!peek(ps, es, ")"))
+    panic("syntax - missing )");
+  gettoken(ps, es, 0, 0);
+  cmd = parseredirs(cmd, ps, es);
+  return cmd;
+}
+
+struct cmd*
+parseexec(char **ps, char *es)//先頭と終端,実行準備
+{
+  char *q, *eq;
+  int tok, argc;
+  struct execcmd *cmd;
+  struct cmd *ret;
+
+  if(peek(ps, es, "("))//空白を飛ばして、()があるかを確認
+    return parseblock(ps, es);
+
+  ret = execcmd();
+  cmd = (struct execcmd*)ret;
+
+  argc = 0;
+  ret = parseredirs(ret, ps, es);//retはtypeにEXECが入っている
+  while(!peek(ps, es, "|)&;")){//空白を飛ばして、記号がないとき
+    if((tok=gettoken(ps, es, &q, &eq)) == 0)//0は文字列の終端を表す
+      break;
+    if(tok != 'a')//コマンドの時
+      panic("syntax");
+    cmd->argv[argc] = q;//lsならl
+    cmd->eargv[argc] = eq;//lsなら空白が入る
+    argc++;//コマンドの個数
+    if(argc >= MAXARGS)
+      panic("too many args");
+    ret = parseredirs(ret, ps, es);
+  }
+  cmd->argv[argc] = 0;//この処理は保険のためかな、何もないとこには0を代入している
+  cmd->eargv[argc] = 0;
+  return ret;
+}
+
+// NUL-terminate all the counted strings.
+struct cmd*
+nulterminate(struct cmd *cmd)
+{
+  int i;
+  struct backcmd *bcmd;
+  struct execcmd *ecmd;
+  struct listcmd *lcmd;
+  struct pipecmd *pcmd;
+  struct redircmd *rcmd;
+
+  if(cmd == 0)
+    return 0;
+
+  switch(cmd->type){//終端にNULLを入れいている良そう
+  case EXEC:
+    ecmd = (struct execcmd*)cmd;
+    for(i=0; ecmd->argv[i]; i++)
+      *ecmd->eargv[i] = 0;//eargvですよ終端を表しているものですよ
+    break;
+
+  case REDIR:
+    rcmd = (struct redircmd*)cmd;
+    nulterminate(rcmd->cmd);
+    *rcmd->efile = 0;//ファイルの終端を表している
+    break;
+
+  case PIPE:
+    pcmd = (struct pipecmd*)cmd;
+    nulterminate(pcmd->left);
+    nulterminate(pcmd->right);
+    break;
+
+  case LIST:
+    lcmd = (struct listcmd*)cmd;
+    nulterminate(lcmd->left);
+    nulterminate(lcmd->right);
+    break;
+
+  case BACK:
+    bcmd = (struct backcmd*)cmd;
+    nulterminate(bcmd->cmd);
+    break;
+  }
+  return cmd;
+}
+  \end{lstlisting}
+
 
   
   \begin{thebibliography}{99}
 		\bibitem{knuth1984}
-			エラトステネスのふるい,
-			2024/12/15,
-			\url{https://algo-method.com/descriptions/64}
+      open関数の使い方、正しく理解していますか？,
+			2024/2/10,
+			\url{https://progzakki.sanachan.com/program-lang/c/how-to-use-open/}
 
     \bibitem{knuth1984}
-			webpia,
-			2024/12/15,
-			\url{https://webpia.jp/quick_sort/}
+      シェルの多段パイプを自作してみる,
+			2024/2/10,
+			\url{https://keiorogiken.wordpress.com/2017/12/15/%E3%82%B7%E3%82%A7%E3%83%AB%E3%81%AE%E5%A4%9A%E6%AE%B5%E3%83%91%E3%82%A4%E3%83%97%E3%82%92%E8%87%AA%E4%BD%9C%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B/}
 
       \bibitem{knuth1984}
-			Qiita,
-			2024/12/15,
-			\url{https://qiita.com/cotrpepe/items/1f4c38cc9d3e3a5f5e9c}
+			C言語で理解するリダイレクトの全て！初心者もマスターできる7つのステップ,
+			2024/2/10,
+			\url{https://jp-seemore.com/iot/11246/}
 			
 	\end{thebibliography}
-
 
 \end{document}

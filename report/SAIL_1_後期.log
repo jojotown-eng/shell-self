@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.14.0 (TeX Live 2022/dev/Debian)  (format=lualatex 2024.11.11)  7 FEB 2025 08:58
+This is LuaHBTeX, Version 1.14.0 (TeX Live 2022/dev/Debian)  (format=lualatex 2024.11.11)  11 FEB 2025 20:52
  restricted system commands enabled.
  file:line:error style messages enabled.
 **SAIL_1_後期.tex
@@ -519,34 +519,34 @@ LaTeX Warning: Label `knuth1984' multiply defined.
 )
 \openout1 = SAIL_1_後期.aux
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 40.
-LaTeX Font Info:    ... okay on input line 40.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 40.
-LaTeX Font Info:    ... okay on input line 40.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 40.
-LaTeX Font Info:    ... okay on input line 40.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 40.
-LaTeX Font Info:    ... okay on input line 40.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 40.
-LaTeX Font Info:    Trying to load font information for TS1+cmr on input line 40.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 47.
+LaTeX Font Info:    Trying to load font information for TS1+cmr on input line 47.
  (/usr/share/texlive/texmf-dist/tex/latex/base/ts1cmr.fd
 File: ts1cmr.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 )
-LaTeX Font Info:    ... okay on input line 40.
-LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 40.
-LaTeX Font Info:    ... okay on input line 40.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 40.
-LaTeX Font Info:    ... okay on input line 40.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 40.
-LaTeX Font Info:    ... okay on input line 40.
-LaTeX Font Info:    Checking defaults for JY3/mc/m/n on input line 40.
-LaTeX Font Info:    ... okay on input line 40.
-LaTeX Font Info:    Checking defaults for JT3/mc/m/n on input line 40.
-LaTeX Font Info:    ... okay on input line 40.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 40.
-LaTeX Font Info:    ... okay on input line 40.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 40.
-LaTeX Font Info:    ... okay on input line 40.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for JY3/mc/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for JT3/mc/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
  (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count291
@@ -567,7 +567,7 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 48
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
 \c@lstlisting=\count297
-Package hyperref Info: Link coloring OFF on input line 40.
+Package hyperref Info: Link coloring OFF on input line 47.
  (/usr/share/texlive/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2021-04-02 v2.47 Cross-referencing by name of section
  (/usr/share/texlive/texmf-dist/tex/latex/refcount/refcount.sty
@@ -577,55 +577,65 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
 \c@section@level=\count298
 )
-LaTeX Info: Redefining \ref on input line 40.
-LaTeX Info: Redefining \pageref on input line 40.
-LaTeX Info: Redefining \nameref on input line 40.
+LaTeX Info: Redefining \ref on input line 47.
+LaTeX Info: Redefining \pageref on input line 47.
+LaTeX Info: Redefining \nameref on input line 47.
  (./SAIL_1_後期.out) (./SAIL_1_後期.out)
 \@outlinefile=\write4
 
 \openout4 = SAIL_1_後期.out
+(load cache: extra_lmroman17-regular.luc)
+LaTeX Font Info:    Font shape `JT3/mc/m/n' will be
+(Font)              scaled to size 15.97903pt on input line 50.
+LaTeX Font Info:    Font shape `JY3/mc/m/n' will be
+(Font)              scaled to size 15.97903pt on input line 50.
 (load cache: extra_lmroman12-regular.luc)
 LaTeX Font Info:    Font shape `JT3/mc/m/n' will be
-(Font)              scaled to size 11.09656pt on input line 41.
+(Font)              scaled to size 11.09656pt on input line 50.
 LaTeX Font Info:    Font shape `JY3/mc/m/n' will be
-(Font)              scaled to size 11.09656pt on input line 41.
+(Font)              scaled to size 11.09656pt on input line 50.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 50.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 50.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 50.
+LaTeX Font Info:    Font shape `JY3/mc/m/n' will be
+(Font)              scaled to size 5.54828pt on input line 50.
 LaTeX Font Info:    Font shape `JT3/gt/m/n' will be
-(Font)              scaled to size 11.09656pt on input line 41.
+(Font)              scaled to size 11.09656pt on input line 51.
 LaTeX Font Info:    Font shape `JY3/gt/m/n' will be
-(Font)              scaled to size 11.09656pt on input line 41.
+(Font)              scaled to size 11.09656pt on input line 51.
 (load cache: extra_haranoajigothic-medium.luc)(load cache: extra_lmsans12-regular.luc)
 LaTeX Font Info:    Font shape `JT3/gt/m/n' will be
-(Font)              scaled to size 9.24713pt on input line 60.
+(Font)              scaled to size 9.24713pt on input line 70.
 LaTeX Font Info:    Font shape `JY3/gt/m/n' will be
-(Font)              scaled to size 9.24713pt on input line 60.
+(Font)              scaled to size 9.24713pt on input line 70.
 (load cache: extra_lmsans10-regular.luc) (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
 ) (/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
 )(load cache: extra_lmroman9-regular.luc)
 LaTeX Font Info:    Font shape `JT3/mc/m/n' will be
-(Font)              scaled to size 8.32242pt on input line 62.
+(Font)              scaled to size 8.32242pt on input line 72.
 LaTeX Font Info:    Font shape `JY3/mc/m/n' will be
-(Font)              scaled to size 8.32242pt on input line 62.
+(Font)              scaled to size 8.32242pt on input line 72.
 (load cache: extra_lmmono10-regular.luc)
 Removing  `ltj.process_input_buffer' from `process_input_buffer'.
 Inserting `ltj.listings_unicode' at position 1 in `process_input_buffer'.
 Inserting `ltj.process_input_buffer' at position 2 in `process_input_buffer'.(load cache: extra_lmroman7-regular.luc)
 LaTeX Font Info:    Font shape `JT3/mc/m/n' will be
-(Font)              scaled to size 6.47299pt on input line 63.
+(Font)              scaled to size 6.47299pt on input line 73.
 LaTeX Font Info:    Font shape `JY3/mc/m/n' will be
-(Font)              scaled to size 6.47299pt on input line 63.
+(Font)              scaled to size 6.47299pt on input line 73.
 LaTeX Font Info:    Font shape `JT3/gt/m/n' will be
-(Font)              scaled to size 8.32242pt on input line 63.
+(Font)              scaled to size 8.32242pt on input line 73.
 LaTeX Font Info:    Font shape `JY3/gt/m/n' will be
-(Font)              scaled to size 8.32242pt on input line 63.
-Removing  `ltj.listings_unicode' from `process_input_buffer'. [1
+(Font)              scaled to size 8.32242pt on input line 73.
+Removing  `ltj.listings_unicode' from `process_input_buffer'. [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
-Removing  `ltj.process_input_buffer' from `process_input_buffer'.
-Inserting `ltj.listings_unicode' at position 1 in `process_input_buffer'.
-Inserting `ltj.process_input_buffer' at position 2 in `process_input_buffer'.
-Removing  `ltj.listings_unicode' from `process_input_buffer'.
+
+]
 Removing  `ltj.process_input_buffer' from `process_input_buffer'.
 Inserting `ltj.listings_unicode' at position 1 in `process_input_buffer'.
 Inserting `ltj.process_input_buffer' at position 2 in `process_input_buffer'.
@@ -633,18 +643,26 @@ Removing  `ltj.listings_unicode' from `process_input_buffer'. [2]
 Removing  `ltj.process_input_buffer' from `process_input_buffer'.
 Inserting `ltj.listings_unicode' at position 1 in `process_input_buffer'.
 Inserting `ltj.process_input_buffer' at position 2 in `process_input_buffer'.
-Removing  `ltj.listings_unicode' from `process_input_buffer'. [3]
-<image/シェル実行結果.png, id=185, 823.57687pt x 179.67125pt>
+Removing  `ltj.listings_unicode' from `process_input_buffer'.
+Removing  `ltj.process_input_buffer' from `process_input_buffer'.
+Inserting `ltj.listings_unicode' at position 1 in `process_input_buffer'.
+Inserting `ltj.process_input_buffer' at position 2 in `process_input_buffer'. [3]
+Removing  `ltj.listings_unicode' from `process_input_buffer'.
+<image/シェル実行結果.png, id=168, 823.57687pt x 179.67125pt>
 File: image/シェル実行結果.png Graphic file (type png)
 <use image/シェル実行結果.png>
-Package luatex.def Info: image/シェル実行結果.png  used on input line 248.
+Package luatex.def Info: image/シェル実行結果.png  used on input line 258.
 (luatex.def)             Requested size: 177.5422pt x 38.73273pt.
-<image/ls実行結果.png, id=186, 96.36pt x 170.6375pt>
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<image/ls実行結果.png, id=169, 96.36pt x 170.6375pt>
 File: image/ls実行結果.png Graphic file (type png)
 <use image/ls実行結果.png>
-Package luatex.def Info: image/ls実行結果.png  used on input line 259.
+Package luatex.def Info: image/ls実行結果.png  used on input line 269.
 (luatex.def)             Requested size: 88.7711pt x 157.1993pt.
- [4<./image/シェル実行結果.png><./image/ls実行結果.png>]
+[4<./image/シェル実行結果.png><./image/ls実行結果.png>]
 warning  (pdf backend): ignoring duplicate destination with the name 'lstlisting.1'
 Removing  `ltj.process_input_buffer' from `process_input_buffer'.
 Inserting `ltj.listings_unicode' at position 1 in `process_input_buffer'.
@@ -674,13 +692,89 @@ warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.
 warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.1.12'
 [5]
 Removing  `ltj.listings_unicode' from `process_input_buffer'.
+warning  (pdf backend): ignoring duplicate destination with the name 'lstlisting.2'
+Removing  `ltj.process_input_buffer' from `process_input_buffer'.
+Inserting `ltj.listings_unicode' at position 1 in `process_input_buffer'.
+Inserting `ltj.process_input_buffer' at position 2 in `process_input_buffer'.
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.1'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.2'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.3'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.4'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.5'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.6'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.7'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.8'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.9'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.10'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.11'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.12'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.13'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.14'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.15'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.16'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.17'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.18'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.19'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.20'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.21'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.2.22'
+[6] [7] [8] [9]
+Removing  `ltj.listings_unicode' from `process_input_buffer'.
+warning  (pdf backend): ignoring duplicate destination with the name 'lstlisting.3'
+Removing  `ltj.process_input_buffer' from `process_input_buffer'.
+Inserting `ltj.listings_unicode' at position 1 in `process_input_buffer'.
+Inserting `ltj.process_input_buffer' at position 2 in `process_input_buffer'.
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.3.1'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.3.2'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.3.3'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.3.4'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.3.5'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.3.6'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.3.7'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.3.8'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.3.9'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.3.10'
+
+warning  (pdf backend): ignoring duplicate destination with the name 'lstnumber.3.11'
+[10] [11] [12] [13] [14] [15]
+Removing  `ltj.listings_unicode' from `process_input_buffer'.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 392.
+(Font)              <7> on input line 1219.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 392.
+(Font)              <5> on input line 1219.
 LaTeX Font Info:    Font shape `JY3/mc/m/n' will be
-(Font)              scaled to size 4.62357pt on input line 392.
- [6
+(Font)              scaled to size 4.62357pt on input line 1219.
+ [16
 warning  (pdf backend): ignoring duplicate destination with the name 'cite.knuth1984'
 
 warning  (pdf backend): ignoring duplicate destination with the name 'cite.knuth1984'
@@ -693,19 +787,19 @@ Package rerunfilecheck Info: File `SAIL_1_後期.out' has not changed.
 )
 
 Here is how much of LuaTeX's memory you used:
- 13265 strings out of 477805
- 933252,794899 words of node,token memory allocated
- 22765 words of node memory still in use:
-   7 hlist, 1 vlist, 4 rule, 2 glue, 263 kern, 1 glyph, 6682 attribute, 1382 glue_spec, 352 attribute_list, 1 write, 64 user_defined, 3 pdf_action nodes
-   avail lists: 1:41,2:201638,3:819,4:15417,5:8863,6:137,7:10797,8:113,9:20257,10:17,11:867
- 33154 multiletter control sequences out of 65536+600000
- 43 fonts using 36561167 bytes
- 114i,7n,112p,1772b,982s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/share/texmf/fonts/opentype/public/lm/lmmono9-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmmono10-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmroman7-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmroman9-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmsans10-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmroman10-regular.otf></usr/share/texlive/texmf-dist/fonts/opentype/public/haranoaji/HaranoAjiMincho-Regular.otf></usr/share/texlive/texmf-dist/fonts/opentype/public/haranoaji/HaranoAjiGothic-Medium.otf></usr/share/texmf/fonts/opentype/public/lm/lmsans12-regular.otf>
-Output written on SAIL_1_後期.pdf (6 pages, 187843 bytes).
+ 14200 strings out of 477805
+ 1458152,794899 words of node,token memory allocated
+ 42713 words of node memory still in use:
+   7 hlist, 1 vlist, 4 rule, 2 glue, 343 kern, 1 glyph, 8968 attribute, 4300 glue_spec, 472 attribute_list, 1 write, 102 user_defined, 2 pdf_action nodes
+   avail lists: 1:47,2:310709,3:1244,4:25461,5:14451,6:178,7:15708,8:247,9:32784,10:22,11:1467
+ 33303 multiletter control sequences out of 65536+600000
+ 55 fonts using 44818439 bytes
+ 114i,8n,112p,1772b,982s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/share/texmf/fonts/opentype/public/lm/lmmono9-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmmono10-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmroman7-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmroman9-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmsans10-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmroman10-regular.otf></usr/share/texlive/texmf-dist/fonts/opentype/public/haranoaji/HaranoAjiGothic-Medium.otf></usr/share/texmf/fonts/opentype/public/lm/lmsans12-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmroman12-regular.otf></usr/share/texmf/fonts/opentype/public/lm/lmroman17-regular.otf></usr/share/texlive/texmf-dist/fonts/opentype/public/haranoaji/HaranoAjiMincho-Regular.otf>
+Output written on SAIL_1_後期.pdf (16 pages, 284010 bytes).
 
-PDF statistics: 376 PDF objects out of 1000 (max. 8388607)
- 333 compressed objects within 4 object streams
- 231 named destinations out of 1000 (max. 131072)
+PDF statistics: 1243 PDF objects out of 1440 (max. 8388607)
+ 1176 compressed objects within 12 object streams
+ 1017 named destinations out of 1200 (max. 131072)
  89 words of extra memory for PDF output out of 10000 (max. 100000000)
 
